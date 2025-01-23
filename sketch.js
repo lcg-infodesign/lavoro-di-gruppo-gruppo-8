@@ -1,48 +1,39 @@
-// Dichiarazione delle variabili globali
+p5.disableFriendlyErrors = true;
 
-// Indice della scena corrente. Inizia da 0.
-let currentScene = 0;
-// Quantità di scroll effettuato.
-let scrollAmount = 0;
-// Quantità di scroll all'inizio della scena corrente.
-let startSceneScrollAmount = 0;
-// Quantità massima di scroll consentita.
+let currentScene = 0; 
+let scrollAmount = 0; 
+let startSceneScrollAmount = 0; 
 const maxScroll = 36000;
+let scrollDisabled = false;
 
-// Larghezza iniziale della finestra.
-let startingWidth;
-// Altezza iniziale della finestra.
-let startingHeight;
-// Misura di riferimento per la responsività, calcolata in base alla larghezza.
-let responsiveReferenceMeasure;
-// Misura di riferimento minima per la responsività.
-const minReferenceMeasure = 0.5;
+let startingWidth; 
+let startingHeight; 
+let referenceMeasure; 
+const minReferenceMeasure = 0.5; 
 
-// Colore di sfondo.
 const backgroundColor = "#210908";
+const maxScenes = 6; 
 
-// Numero massimo di scene.
-const maxScenes = 6;
-// Oggetto che contiene le funzioni per disegnare ogni scena. Le chiavi sono gli indici delle scene.
-const scenes = {
-    0: sceneOne,
-    1: sceneTwo,
-    2: sceneThree,
-    3: sceneFour,
-    4: sceneFive,
-    5: sceneSix,
-};
-// Oggetto che contiene le funzioni di setup per ogni scena.
-const scenesSetup = {
-    0: sceneOneSetup,
-    1: sceneTwoSetup,
-    2: sceneThreeSetup,
-    3: sceneFourSetup,
-    4: sceneFiveSetup,
-    5: sceneSixSetup,
+let timesNewRomanBold, montserratRegular;
+
+const categoryTextMap = {
+    "FAMILY MEMBER": "Family member",
+    "INTIMATE PARTNER": "Intimate partner",
+    "OTHER PERPETRATOR KNOWN TO THE VICTIM": "Known to the victim",
+    "PERPETRATOR UNKNOWN TO THE VICTIM": "Unknown to the victim",
+    "PERPETRATOR TO VICTIM RELATIONSHIP UNKNOWN": "Relationship unknown",
+    "NON CI SONO DATI SULLA CATEGORIA": "No data"
 };
 
-// Oggetto che contiene la quantità di scroll necessaria per ogni scena.
+const categoryHoverTextMap = {
+    "FAMILY MEMBER": "Violence grows closest to home. This category includes femicides committed by parents, siblings, or other relatives.",
+    "INTIMATE PARTNER": "A relationship of love turns deadly. This category highlights femicides committed by current or former intimate partners.",
+    "OTHER PERPETRATOR KNOWN TO THE VICTIM": "Not a stranger, yet not family. Here, the perpetrator is an acquaintance, friend, or someone familiar to the victim.",
+    "PERPETRATOR UNKNOWN TO THE VICTIM": "A cruel act of violence by a stranger. These cases involve perpetrators who had no prior connection to the victim.",
+    "PERPETRATOR TO VICTIM RELATIONSHIP UNKNOWN": "The relationship between the victim and the perpetrator remains a mystery.",
+    "NON CI SONO DATI SULLA CATEGORIA": "No data available for this category."
+};
+
 const scenesScrollAmount = {
     0: 6000,
     1: 6000,
@@ -52,465 +43,385 @@ const scenesScrollAmount = {
     5: 6000,
 };
 
-// Dizionario dei colori per le diverse categorie.
 const colorsDict = {
     "FAMILY MEMBER": "#841242",
     "INTIMATE PARTNER": "#611915",
     "OTHER PERPETRATOR KNOWN TO THE VICTIM": "#A02B25",
     "PERPETRATOR UNKNOWN TO THE VICTIM": "#D45249",
     "PERPETRATOR TO VICTIM RELATIONSHIP UNKNOWN": "#E4908B",
-    "NON CI SONO DATI SULLA CATEGORIA": "#663634",
+    "NON CI SONO DATI SULLA CATEGORIA": "#663634"
 };
 
-// Variabile per contenere il dataset caricato.
 let dataset;
-
-// Array per contenere i cerchi (probabilmente per una visualizzazione).
 let circles = [];
+let fadeAmount = 255;
+let categoryColors = {};
+let sceneFiveStartingCirclePositions;
+let countriesData;
+let countriesPositions;
+let countriesCircles;
 
-// Funzione per ottenere la misura di riferimento, prendendo il massimo tra la misura responsiva e quella minima.
-function getReferenceMeasure() {
-    return max(responsiveReferenceMeasure, minReferenceMeasure);
-}
+const scenes = {
+    0: sceneOne,
+    1: sceneTwo,
+    2: sceneThree,
+    3: sceneFour,
+    4: sceneFive,
+    5: sceneSix
+};
+const scenesSetup = {
+    0: sceneOneSetup,
+    1: sceneTwoSetup,
+    2: sceneThreeSetup,
+    3: sceneFourSetup,
+    4: sceneFiveSetup,
+    5: sceneSixSetup
+};
 
-// Funzione di preload di p5.js, chiamata prima di setup().
 function preload() {
-    // Caricamento dei font.
-    bodoniBold = loadFont('fonts/Bodoni-Bold.ttf');
-    bodoniRegular = loadFont('fonts/Bodoni-Regular.ttf');
-
-    // Caricamento del dataset da un file CSV.
+    timesNewRomanBold = loadFont('fonts/times new roman bold.ttf');
+    montserratRegular = loadFont('fonts/Montserrat-Regular.ttf'); // Nuovo font
     dataset = loadTable("assets/Femmincidi2.csv", 'ssv', 'header');
-    console.log(dataset);
 }
 
-// Funzione di setup di p5.js, chiamata una volta all'inizio.
 function setup() {
-    // Creazione del canvas a schermo intero.
     createCanvas(windowWidth, windowHeight);
+    noSmooth();
+    frameRate(30);
 
-    // Inizializzazione delle dimensioni iniziali.
     startingWidth = width;
     startingHeight = height;
+    updateReferenceMeasure();
 
-    // Calcolo della misura di riferimento responsiva.
-    responsiveReferenceMeasure = width / 1920;
+    for (let cat in colorsDict) {
+        categoryColors[cat] = color(colorsDict[cat]);
+    }
+
+    scenesSetup[0]();
 }
 
-// Funzione di draw di p5.js, chiamata ripetutamente.
 function draw() {
-    // Chiamata alla funzione di disegno della scena corrente.
     scenes[currentScene]();
-    // Simulazione dell'effetto di fading.
     simulateFading();
+    drawSceneLegend();
 }
 
-// Variabile per la gestione del fading.
-let fadeAmount = 255;
-// Funzione per simulare l'effetto di fading in entrata e in uscita tra le scene.
+function updateReferenceMeasure() {
+    referenceMeasure = max(width / 1920, minReferenceMeasure);
+}
+
 function simulateFading() {
-    // Variabile per indicare se si sta effettuando un fade out.
-    let isFadeOut = false;
-    // Controllo se lo scroll si trova nella fase di fade in (primi 20% della scena).
-    if (scrollAmount >= startSceneScrollAmount && scrollAmount < startSceneScrollAmount + 0.2 * scenesScrollAmount[currentScene]) {
-        // Se è la prima scena, il fadeAmount è sempre 255 (completamente opaco).
+    let startFadingIn = startSceneScrollAmount;
+    let endFadingIn = startSceneScrollAmount + 0.2 * scenesScrollAmount[currentScene];
+    let startFadingOut = startSceneScrollAmount + 0.8 * scenesScrollAmount[currentScene];
+    let endFadingOut = startSceneScrollAmount + scenesScrollAmount[currentScene];
+
+    if (scrollAmount >= startFadingIn && scrollAmount < endFadingIn) {
         if (currentScene === 0) {
             fadeAmount = 255;
+        } else {
+            fadeAmount = map(scrollAmount, startFadingIn, endFadingIn, 0, 255);
         }
-        // Altrimenti, calcola il fadeAmount mappando lo scroll tra 0 e 255.
-        else {
-            fadeAmount = map(scrollAmount, startSceneScrollAmount, startSceneScrollAmount + 0.2 * scenesScrollAmount[currentScene], 0, 255);
-        }
-    }
-    // Controllo se lo scroll si trova nella fase di fade out (ultimi 20% della scena).
-    else if (scrollAmount <= startSceneScrollAmount + scenesScrollAmount[currentScene] && scrollAmount > startSceneScrollAmount + 0.8 * scenesScrollAmount[currentScene]) {
-        isFadeOut = true;
-        // Se è l'ultima scena, il fadeAmount è sempre 255.
+    } else if (scrollAmount > startFadingOut && scrollAmount <= endFadingOut) {
         if (currentScene === maxScenes - 1) {
             fadeAmount = 255;
+        } else {
+            fadeAmount = map(scrollAmount, startFadingOut, endFadingOut, 255, 0);
         }
-        // Altrimenti, calcola il fadeAmount mappando lo scroll tra 255 e 0.
-        else {
-            fadeAmount = map(scrollAmount, startSceneScrollAmount + 0.8 * scenesScrollAmount[currentScene], startSceneScrollAmount + scenesScrollAmount[currentScene], 255, 0);
+    } else {
+        if (currentScene === 0 && scrollAmount === 0) {
+            fadeAmount = 255;
+        } else if (scrollAmount === startSceneScrollAmount && currentScene !== 0) {
+            fadeAmount = 0;
+        } else {
+            fadeAmount = 255;
         }
     }
 }
 
-// Funzione di setup per la prima scena.
+function drawSceneLegend() {
+    // Disegna un cerchio bianco vuoto per ogni scena sul lato sinistro dello schermo, e uno pieno per la scena corrente.
+    let sceneCircleSize = 15 * referenceMeasure;
+    let sceneCircleSpacing = 30 * referenceMeasure;
+    let sceneCircleX = 50 * referenceMeasure;
+    let sceneCircleY = height / 2 - (maxScenes / 2) * sceneCircleSpacing;
+
+    for (let i = 0; i < maxScenes; i++) {
+        if (i === currentScene) {
+            fill(255);
+            ellipse(sceneCircleX, sceneCircleY, sceneCircleSize);
+            text("PROVA")
+        } else {
+            let distance = dist(mouseX, mouseY, sceneCircleX, sceneCircleY);
+            if (distance < sceneCircleSize / 2) {
+                fill(255, 100);
+                ellipse(sceneCircleX, sceneCircleY, sceneCircleSize);
+            } 
+            else {
+                noFill();
+                stroke(255);
+            }
+            ellipse(sceneCircleX, sceneCircleY, sceneCircleSize);
+            noStroke();
+        }
+        sceneCircleY += sceneCircleSpacing;
+    }
+}
+
+// SCENE SETUP & FUNCTIONS
 function sceneOneSetup() {
-    // Attualmente vuota, non esegue nessuna operazione di setup specifica.
+    fadeAmount = 255;
 }
-
-// Funzione per disegnare la prima scena.
 function sceneOne() {
-    // Imposta il colore di sfondo.
     background(backgroundColor);
 
-    // Imposta l'allineamento del testo al centro.
-    textAlign(CENTER, CENTER);
-    // Imposta il colore del testo con l'opacità gestita da fadeAmount.
+    // Titolo
     fill(255, fadeAmount);
-    // Imposta il font del testo.
-    textFont(bodoniBold);
-    // Imposta la dimensione del testo in base alla misura di riferimento per la responsività.
-    textSize(48 * getReferenceMeasure());
-    // Disegna il testo principale.
-    text('Flowers that shouldn’t bloom', width / 2, height / 2 - 50 * getReferenceMeasure());
+    textFont(timesNewRomanBold);
+    textAlign(CENTER, CENTER);
+    textSize(48 * referenceMeasure);
+    text('Flowers that shouldn’t bloom', width / 2, height / 2 - 50 * referenceMeasure);
 
-    // Imposta il colore del tratto con l'opacità gestita da fadeAmount.
+    // Linea più sottile
     stroke(255, fadeAmount);
-    // Imposta lo spessore del tratto.
-    strokeWeight(1);
-    // Disegna una linea orizzontale sotto il titolo.
-    line(width / 2 - 150 * getReferenceMeasure(), height / 2, width / 2 + 150 * getReferenceMeasure(), height / 2);
-
-    // Disabilita il tratto.
+    strokeWeight(0.5); 
+    line(width / 2 - 150 * referenceMeasure, height / 2, width / 2 + 150 * referenceMeasure, height / 2);
     noStroke();
-    // Imposta la dimensione del testo per il sottotitolo.
-    textSize(24 * getReferenceMeasure());
-    // Disegna il sottotitolo.
-    text('World visualization of femicide in 2020', width / 2, height / 2 + 30 * getReferenceMeasure());
 
-    // Disabilita il tratto.
-    noStroke();
-    // Disegna un triangolo in basso al centro della schermata (probabilmente un indicatore di scroll).
-    triangle(width / 2 - 10 * getReferenceMeasure(), height - 50 * getReferenceMeasure(), width / 2 + 10 * getReferenceMeasure(), height - 50 * getReferenceMeasure(), width / 2, height - 30 * getReferenceMeasure());
+    // Sottotitolo in Montserrat
+    fill(255, fadeAmount);
+    textFont(montserratRegular);
+    textSize(24 * referenceMeasure);
+    text('World visualization of femicides in 2020', width / 2, height / 2 + 30 * referenceMeasure);
 }
 
-// Funzione di setup per la seconda scena.
 function sceneTwoSetup() {
-    // Attualmente vuota, non esegue nessuna operazione di setup specifica.
+    fadeAmount = 0;
 }
-
-// Funzione per disegnare la seconda scena.
 function sceneTwo() {
-    // Imposta il colore di sfondo.
     background(backgroundColor);
-    // Imposta l'allineamento del testo al centro.
     textAlign(CENTER, CENTER);
-    // Imposta il font del testo.
-    textFont(bodoniBold);
-    // Imposta il colore del testo con l'opacità gestita da fadeAmount.
-    fill(255, fadeAmount);
 
-    // Controllo per il fade out completo alla fine della scena.
-    if (scrollAmount <= startSceneScrollAmount + scenesScrollAmount[currentScene] && scrollAmount > startSceneScrollAmount + 0.8 * scenesScrollAmount[currentScene]) {
-        // Se si trova nell'ultimo 20% della scena, imposta il testo completamente opaco.
-        fill(255);
-    }
-    // Imposta la dimensione del testo per il numero di femminicidi.
-    textSize(64 * getReferenceMeasure());
-    // Disegna il numero di femminicidi.
-    text('40.000 femicide', width / 2, height / 2 - 30 * getReferenceMeasure());
-
-    // Imposta il colore del testo con l'opacità gestita da fadeAmount.
+    // Titolo principale (bodoni)
     fill(255, fadeAmount);
-    // Imposta la dimensione del testo per la descrizione.
-    textSize(24 * getReferenceMeasure());
-    // Imposta il font del testo per la descrizione.
-    textFont(bodoniRegular);
-    // Disegna la descrizione.
-    text('in the world only in 2020', width / 2, height / 2 + 30 * getReferenceMeasure());
+    textFont(timesNewRomanBold);
+    textSize(64 * referenceMeasure);
+    text('40.000 femicides', width / 2, height / 2 - 30 * referenceMeasure);
 
-    // Imposta il colore del testo con l'opacità gestita da fadeAmount.
-    fill(255, fadeAmount);
-    // Disabilita il tratto.
-    noStroke();
-    // Disegna un triangolo in basso al centro della schermata (probabilmente un indicatore di scroll).
-    triangle(width / 2 - 10 * getReferenceMeasure(), height - 50 * getReferenceMeasure(), width / 2 + 10 * getReferenceMeasure(), height - 50 * getReferenceMeasure(), width / 2, height - 30 * getReferenceMeasure());
+    // Sottotitolo in montserrat
+    textSize(24 * referenceMeasure);
+    textFont(montserratRegular);
+    text('in the world only in 2020', width / 2, height / 2 + 30 * referenceMeasure);
 }
 
-// Funzione di setup per la terza scena.
 function sceneThreeSetup() {
-    // Ottiene i nomi delle colonne del dataset, escludendo la prima.
-    const columns = dataset.columns.slice(1);
-    // Inizializza l'array dei cerchi.
+    fadeAmount = 0;
     circles = [];
-
-    // Itera sulle righe del dataset.
+    const columns = dataset.columns.slice(1);
     for (let r = 0; r < dataset.getRowCount(); r++) {
         const row = dataset.getRow(r);
-
-        // Itera sulle colonne.
         columns.forEach(columnName => {
-            // Ottiene il numero di cerchi da creare per la colonna corrente.
             const numCircles = int(row.get(columnName));
-            // Ottiene il colore del cerchio dal dizionario dei colori.
-            const circleColor = colorsDict[columnName];
-
-            // Fattore di scala per alcuni cerchi, in particolare per quelli senza categoria.
-            let scaleFactor = 1;
-            if (columnName === "NON CI SONO DATI SULLA CATEGORIA") {
-                scaleFactor = 4;
-            }
-            // Crea i cerchi.
-            for (let i = 0; i < numCircles / scaleFactor; i++) {
-                // Genera coordinate casuali per il cerchio.
+            const circleColor = categoryColors[columnName];
+            // let scaleFactor = 1;
+            // if (columnName === "NON CI SONO DATI SULLA CATEGORIA") {
+            //     scaleFactor = 4;
+            // }
+            // let count = numCircles / scaleFactor;
+            let count = numCircles;
+            for (let i = 0; i < count; i++) {
                 const x = random(startingWidth);
                 const y = random(startingHeight);
-
-                // Aggiunge il cerchio all'array.
-                circles.push({
-                    x: x,
-                    y: y,
-                    color: circleColor
+                let dx = random(-5,5)*referenceMeasure;
+                let dy = random(-5,5)*referenceMeasure;
+                circles.push({ 
+                    x: x, 
+                    y: y, 
+                    color: circleColor,
+                    dx: dx,
+                    dy: dy
                 });
             }
         });
     }
 }
-
-// Funzione per disegnare la terza scena.
 function sceneThree() {
-    // Imposta il colore di sfondo.
     background(backgroundColor);
-
-    // Mostra il testo "40.000 femicide" durante la prima parte della scena (primi 30%).
-    if (scrollAmount >= startSceneScrollAmount && scrollAmount < startSceneScrollAmount + 0.3 * scenesScrollAmount[currentScene]) {
-        textAlign(CENTER, CENTER);
-        textFont(bodoniBold);
-        fill(255, 255 - fadeAmount); // Fade out del testo
-
-        textSize(64 * getReferenceMeasure());
-        text('40.000 femicide', width / 2, height / 2 - 30 * getReferenceMeasure());
-    }
-
-    // Disegna i cerchi.
+    noStroke();
     for (let i = 0; i < circles.length; i++) {
         const circle = circles[i];
 
-        // Calcola una posizione target leggermente casuale per il movimento.
-        const targetX = circle.x + random(-5, 5) * getReferenceMeasure();
-        const targetY = circle.y + random(-5, 5) * getReferenceMeasure();
+        if (circle.x < 0) {
+            circle.x = startingWidth;
+        }
+        else if (circle.x > startingWidth) {
+            circle.x = 0;
+        }
+        if (circle.y < 0) {
+            circle.y = startingHeight;
+        }
+        else if (circle.y > startingHeight) {
+            circle.y = 0;
+        }
 
-        // Esegue l'interpolazione lineare per un movimento fluido.
+        const targetX = circle.x + circle.dx;
+        const targetY = circle.y + circle.dy;
         circle.x = lerp(circle.x, targetX, 0.5);
         circle.y = lerp(circle.y, targetY, 0.5);
+        // circle.x = constrain(circle.x, 0, startingWidth);
+        // circle.y = constrain(circle.y, 0, startingHeight);
 
-        // Vincola le coordinate dei cerchi all'interno dei bordi della finestra.
-        circle.x = constrain(circle.x, 0, startingWidth);
-        circle.y = constrain(circle.y, 0, startingHeight);
 
-        // Imposta il colore del cerchio con l'opacità gestita da fadeAmount.
-        fill(rgbaFromHexAndAlpha(circle.color, fadeAmount));
-        // Disabilita il tratto.
-        noStroke();
-        // Disegna l'ellisse, scalando le coordinate in base alle dimensioni iniziali e correnti della finestra per la responsività.
+
+        fill(red(circle.color), green(circle.color), blue(circle.color), fadeAmount);
         ellipse(
             circle.x * (width / startingWidth),
             circle.y * (height / startingHeight),
-            5 * getReferenceMeasure(),
-            5 * getReferenceMeasure()
+            5 * referenceMeasure,
+            5 * referenceMeasure
         );
     }
 }
 
-
-// Funzione di setup per la quarta scena.
 function sceneFourSetup() {
-    // Calcola le posizioni iniziali dei cerchi per la quinta scena (transizione).
+    fadeAmount = 0;
     computeSceneFiveStartingPositions();
 }
-
-// Funzione per mappare le chiavi colore a testo visualizzato.
-function mapColorKeyToText(key) {
-    switch (key) {
-        case "FAMILY MEMBER":
-            return "Family member"; // Membro della famiglia
-        case "INTIMATE PARTNER":
-            return "Intimate partner"; // Partner intimo
-        case "OTHER PERPETRATOR KNOWN TO THE VICTIM":
-            return "Known to the victim"; // Conosciuto dalla vittima
-        case "PERPETRATOR UNKNOWN TO THE VICTIM":
-            return "Unknown to the victim"; // Sconosciuto alla vittima
-        case "PERPETRATOR TO VICTIM RELATIONSHIP UNKNOWN":
-            return "Relationship unknown"; // Relazione sconosciuta
-        case "NON CI SONO DATI SULLA CATEGORIA":
-            return "No data"; // Nessun dato
-    }
-}
-
-// Funzione per mappare le chiavi colore a testo di hover (descrizione).
-function mapColorKeyToHoverText(key) {
-    switch (key) {
-        case "FAMILY MEMBER":
-            return "Violence grows closest to home. This category includes femicides committed by parents, siblings, or other relatives."; // La violenza cresce più vicino a casa. Questa categoria include femminicidi commessi da genitori, fratelli o altri parenti.
-        case "INTIMATE PARTNER":
-            return "A relationship of love turns deadly. This category highlights femicides committed by current or former intimate partners."; // Una relazione d'amore diventa mortale. Questa categoria evidenzia i femminicidi commessi da partner intimi attuali o passati.
-        case "OTHER PERPETRATOR KNOWN TO THE VICTIM":
-            return "Not a stranger, yet not family. Here, the perpetrator is an acquaintance, friend, or someone familiar to the victim."; // Non uno sconosciuto, ma non famiglia. Qui, l'autore è una conoscenza, un amico o qualcuno di familiare alla vittima.
-        case "PERPETRATOR UNKNOWN TO THE VICTIM":
-            return "A cruel act of violence by a stranger. These cases involve perperrarors who had no prior connection to the victim."; // Un crudele atto di violenza da parte di uno sconosciuto. Questi casi coinvolgono autori che non avevano alcun legame precedente con la vittima.
-        case "PERPETRATOR TO VICTIM RELATIONSHIP UNKNOWN":
-            return "The relationship between the victim and the perpetrator remains a mystery."; // La relazione tra la vittima e l'autore rimane un mistero.
-        case "NON CI SONO DATI SULLA CATEGORIA":
-            return "No data available for this category."; // Nessun dato disponibile per questa categoria.
-    }
-}
-
-// Funzione per disegnare la quarta scena.
 function sceneFour() {
-    // Imposta il colore di sfondo.
     background(backgroundColor);
-
-    // Imposta il colore, il font, la dimensione e l'allineamento del testo del titolo.
     fill(255, fadeAmount);
-    textFont(bodoniBold);
-    textSize(38 * getReferenceMeasure());
+    textFont(timesNewRomanBold);
+    textSize(38 * referenceMeasure);
     textAlign(CENTER);
-    // Disegna il titolo.
-    text('The seeds of violence', width / 2, height / 2 - 300 * getReferenceMeasure()); // I semi della violenza
+    text('The seeds of violence', width / 2, height / 2 - 300 * referenceMeasure);
 
-    // Calcola la spaziatura tra i punti/cerchi.
-    let dotSpacing = 200 * getReferenceMeasure();
-    // Calcola la posizione verticale dei punti.
-    let dotY = height / 2 - 150 * getReferenceMeasure();
-    // Calcola la posizione orizzontale di partenza per centrare i punti.
+    let dotSpacing = 200 * referenceMeasure;
+    let dotY = height / 2 - 150 * referenceMeasure;
     let startX = width / 2 - (Object.keys(colorsDict).length - 1) * dotSpacing / 2;
 
-    // Indice per la posizione orizzontale dei punti.
-    let i = 0;
-    // Testo da mostrare al hover.
     let hoveredText = "";
-    // Colore del cerchio su cui si trova il mouse.
-    let hoveredCircleColor;
+    let hoveredCircleColor = null;
+    let hoveredX, hoveredY, hoveredSize;
 
-    // Itera sulle chiavi del dizionario dei colori.
+    let hoverRadius = 80 * referenceMeasure;
+
+    let startFadingOut = startSceneScrollAmount + 0.8 * scenesScrollAmount[currentScene];
+
+    noStroke();
+    textFont(montserratRegular); // Montserrat per le label delle palline e testi
+    let i = 0;
     for (let key in colorsDict) {
-        // Calcola la posizione orizzontale del punto corrente.
         let dotX = startX + i * dotSpacing;
-        // Dimensione del punto.
         let dotSize = 100;
+        let cCol = categoryColors[key];
+        let endFadingOut = startSceneScrollAmount + scenesScrollAmount[currentScene];
 
-        // Imposta il colore del punto con l'opacità gestita da fadeAmount.
-        fill(rgbaFromHexAndAlpha(colorsDict[key], fadeAmount));
-
-        // Gestisce la transizione verso la quinta scena (fade out della quarta e fade in della quinta).
-        if (scrollAmount <= startSceneScrollAmount + scenesScrollAmount[currentScene] && scrollAmount > startSceneScrollAmount + 0.8 * scenesScrollAmount[currentScene]) {
-            // Calcola la posizione target del cerchio nella quinta scena.
-            const targetX = sceneFiveStartingCirclePositions[key].x;
-            const targetY = sceneFiveStartingCirclePositions[key].y;
-
-            // Calcola il valore di interpolazione (t) in base allo scroll.
-            let t = constrain((scrollAmount - (startSceneScrollAmount + 0.8 * scenesScrollAmount[currentScene])) / (0.2 * scenesScrollAmount[currentScene]), 0, 1);
-
-            // Esegue l'interpolazione lineare per animare la transizione.
-            dotX = lerp(dotX, targetX, t);
-            dotY = lerp(dotY, targetY, t);
-            fill(rgbaFromHexAndAlpha(colorsDict[key]));
+        if (scrollAmount <= endFadingOut && scrollAmount > startFadingOut) {
+            let t = constrain((scrollAmount - startFadingOut) / (0.2 * scenesScrollAmount[currentScene]), 0, 1);
+            dotX = lerp(dotX, sceneFiveStartingCirclePositions[key].x, t);
+            dotY = lerp(dotY, sceneFiveStartingCirclePositions[key].y, t);
             dotSize = min(100, lerp(100, 50, t));
         }
 
-        // Disegna il cerchio.
-        circle(dotX, dotY, dotSize * getReferenceMeasure());
+        fill(red(cCol), green(cCol), blue(cCol), fadeAmount);
+        circle(dotX, dotY, dotSize * referenceMeasure);
 
-        // Calcola la distanza tra il mouse e il centro del cerchio.
-        let distance = dist(mouseX, mouseY, dotX, dotY);
-        // Se il mouse è sopra il cerchio, imposta il testo e il colore per l'hover.
-        if (distance < 50 * getReferenceMeasure()) {
-            hoveredText = mapColorKeyToHoverText(key);
-            hoveredCircleColor = colorsDict[key];
+        // Mostra label solo se NON siamo nella fase di fade out (quindi scrollAmount < startFadingOut)
+        if (scrollAmount < startFadingOut) {
+            let distance = dist(mouseX, mouseY, dotX, dotY);
+            if (distance < hoverRadius) {
+                hoveredText = categoryHoverTextMap[key];
+                hoveredCircleColor = cCol;
+                hoveredX = dotX;
+                hoveredY = dotY;
+                hoveredSize = dotSize * referenceMeasure;
+            }
+
+            fill(255, fadeAmount);
+            textSize(16 * referenceMeasure);
+            text(categoryTextMap[key], dotX, dotY + 70 * referenceMeasure);
         }
-
-        // Imposta il colore, il font, la dimensione e l'allineamento del testo delle etichette.
-        fill(255, fadeAmount);
-        textAlign(CENTER);
-        textFont(bodoniRegular);
-        textSize(16 * getReferenceMeasure());
-        // Disegna l'etichetta sotto ogni cerchio.
-        text(mapColorKeyToText(key), dotX, dotY + 70 * getReferenceMeasure());
 
         i++;
     }
 
-    // Disegna una linea orizzontale.
     stroke(255, fadeAmount);
     strokeWeight(1.5);
-    line(width / 2 - 600 * getReferenceMeasure(), height / 2, width / 2 + 600 * getReferenceMeasure(), height / 2);
+    line(width / 2 - 600 * referenceMeasure, height / 2, width / 2 + 600 * referenceMeasure, height / 2);
 
-    // Gestisce la visualizzazione del testo di hover o del testo principale.
+    noStroke();
     fill(255, fadeAmount);
-    textFont(bodoniRegular);
+    textFont(montserratRegular); 
     textAlign(CENTER);
-    textSize(24 * getReferenceMeasure());
-    noStroke();
-    // Se c'è un testo di hover da mostrare.
-    if (hoveredText !== "") {
-        fill(rgbaFromHexAndAlpha(hoveredCircleColor, fadeAmount));
-        circle(width / 2 - 600 * getReferenceMeasure(), height / 2 + 200 * getReferenceMeasure(), 200 * getReferenceMeasure());
-        fill(255, fadeAmount);
-        textAlign(LEFT);
-        text(hoveredText, width / 2 - 450 * getReferenceMeasure(), height / 2 + 200 * getReferenceMeasure(), 1000 * getReferenceMeasure());
-    } else {
-        // Testo principale da mostrare quando non c'è hover.
-        let bodyText = "Femicide is a phenomenon with various nuances depending on the relationship between victim and perpetrator. We associate these categories with the six seeds of violence from which the so-called flowers that shouldn't bloom are born.";
-        text(bodyText, (width - 600 * getReferenceMeasure()) / 2, height / 2 + 200 * getReferenceMeasure(), 600 * getReferenceMeasure());
-    }
+    textSize(24 * referenceMeasure);
 
-    // Disegna il triangolo in basso al centro (indicatore di scroll).
-    fill(255, fadeAmount);
-    noStroke();
-    triangle(width / 2 - 10 * getReferenceMeasure(), height - 50 * getReferenceMeasure(), width / 2 + 10 * getReferenceMeasure(), height - 50 * getReferenceMeasure(), width / 2, height - 30 * getReferenceMeasure());
+    if (hoveredText !== "" && scrollAmount < startFadingOut) {
+        stroke(255, fadeAmount);
+        strokeWeight(2);
+        noFill();
+        circle(hoveredX, hoveredY, hoveredSize);
+
+        fill(255, fadeAmount);
+        noStroke();
+        textAlign(LEFT);
+        text(hoveredText, width / 2 - 450 * referenceMeasure, height / 2 + 200 * referenceMeasure, 1000 * referenceMeasure);
+        
+        fill(red(hoveredCircleColor), green(hoveredCircleColor), blue(hoveredCircleColor), fadeAmount);
+        circle(width / 2 - 600 * referenceMeasure, height / 2 + 200 * referenceMeasure, 200 * referenceMeasure);
+    } else {
+        // Testo generico in montserrat
+        let bodyText = "Femicide is a phenomenon with various nuances depending on the relationship between victim and perpetrator. We associate these categories with the six seeds of violence from which the so-called flowers that shouldn't bloom are born.";
+        textAlign(CENTER);
+        text(bodyText, width/2 - 300 * referenceMeasure, height / 2 + 200 * referenceMeasure, 600 * referenceMeasure);
+    }
 }
 
-// Variabile per memorizzare le posizioni iniziali dei cerchi nella quinta scena.
-let sceneFiveStartingCirclePositions;
-
-// Funzione per generare una posizione casuale al di fuori del canvas.
 function getRandomPositionOutsideCanvas() {
-    // Sceglie un lato casuale (top, bottom, left, right).
     let side = random(["top", "bottom", "left", "right"]);
     let x, y;
-
-    // Calcola le coordinate x e y in base al lato scelto.
     if (side === "top") {
         x = random(width);
-        y = random(-height, 0); // Sopra il canvas
+        y = random(-height, 0);
     } else if (side === "bottom") {
         x = random(width);
-        y = random(height, 2 * height); // Sotto il canvas
+        y = random(height, 2 * height);
     } else if (side === "left") {
-        x = random(-width, 0); // A sinistra del canvas
+        x = random(-width, 0);
         y = random(height);
-    } else if (side === "right") {
-        x = random(width, 2 * width); // A destra del canvas
+    } else {
+        x = random(width, 2 * width);
         y = random(height);
     }
-
-    // Restituisce un oggetto con le coordinate x e y.
-    return { x: x, y: y };
+    return {x, y};
 }
 
-// Funzione di setup per la quinta scena.
 function sceneFiveSetup() {
-    const columns = dataset.columns.slice(1);
+    fadeAmount = 0;
     circles = [];
+    const columns = dataset.columns.slice(1); 
     let circlesPerCategory = {};
 
-    // Calcola il numero totale di cerchi per ogni categoria.
     for (let r = 0; r < dataset.getRowCount(); r++) {
         const row = dataset.getRow(r);
-
         columns.forEach(columnName => {
             const numCircles = int(row.get(columnName));
-            let scaleFactor = 2;
-            if (columnName === "NON CI SONO DATI SULLA CATEGORIA") {
-                scaleFactor *= 4;
-            }
+            // let scaleFactor = 2;
+            // if (columnName === "NON CI SONO DATI SULLA CATEGORIA") {
+            //     scaleFactor *= 4;
+            // }
             if (circlesPerCategory[columnName] === undefined) {
-                circlesPerCategory[columnName] = numCircles / scaleFactor;
+                // circlesPerCategory[columnName] = numCircles / scaleFactor;
+                circlesPerCategory[columnName] = numCircles;
             } else {
-                circlesPerCategory[columnName] += numCircles / scaleFactor;
+                // circlesPerCategory[columnName] += numCircles / scaleFactor;
+                circlesPerCategory[columnName] += numCircles;
             }
         });
     }
-
+    
     let maxCircles = max(Object.values(circlesPerCategory));
-
     countriesData = {};
     countriesCircles = {};
-
-    // Organizza i dati per paese e categoria e calcola la distanza verticale tra le etichette.
     for (let r = 0; r < dataset.getRowCount(); r++) {
         const row = dataset.getRow(r);
         const country = row.get("SUB-REGIONE 2020");
@@ -520,11 +431,10 @@ function sceneFiveSetup() {
             const category = dataset.columns[i];
             countriesData[country][category] = int(row.get(category));
             countriesCircles[country][category] = [];
-            sceneFiveStartingCirclePositions[category].dy = (20 + map(circlesPerCategory[category] / maxCircles, 0, 1, 50, 200)) * getReferenceMeasure();
+            sceneFiveStartingCirclePositions[category].dy = (20 + map(circlesPerCategory[category] / maxCircles, 0, 1, 50, 200)) * referenceMeasure;
         }
     }
 
-    // Rimuove i paesi con dati pari a zero.
     for (let country in countriesData) {
         let sum = 0;
         for (let key in countriesData[country]) {
@@ -535,45 +445,28 @@ function sceneFiveSetup() {
         }
     }
 
-    // Definisce le posizioni dei paesi sulla mappa.
-    countriesPositions = {
-        "NORD AFRICA": { x: width / 2 - 440 * getReferenceMeasure(), y: height / 2 + 230 * getReferenceMeasure() },
-        "AFRICA SUB-SARIANA": { x: width / 2 - 800 * getReferenceMeasure(), y: height / 2 + 300 * getReferenceMeasure() },
-        "LATINA AMERICA E CARAIBI": { x: width / 2 + 750 * getReferenceMeasure(), y: height / 2 - 320 * getReferenceMeasure() },
-        "NORD AMERICA": { x: width / 2 + 600 * getReferenceMeasure(), y: height / 2 + 300 * getReferenceMeasure() },
-        "ASIA CENTRALE": { x: width / 2 + 350 * getReferenceMeasure(), y: height / 2 - 290 * getReferenceMeasure() },
-        "ASIA EST": { x: width / 2 + 50 * getReferenceMeasure(), y: height / 2 + 100 * getReferenceMeasure() },
-        "SUD-EST ASIATICO": { x: width / 2 - 600 * getReferenceMeasure(), y: height / 2 + 150 * getReferenceMeasure() },
-        "ASIA SUD": { x: width / 2 - 400 * getReferenceMeasure(), y: height / 2 - 70 * getReferenceMeasure() },
-        "ASIA OVEST": { x: width / 2 + 150 * getReferenceMeasure(), y: height / 2 + 280 * getReferenceMeasure() },
-        "EST EUROPA (+RUSSIA)": { x: width / 2 + 660 * getReferenceMeasure(), y: height / 2 - 25 * getReferenceMeasure() },
-        "NORD EUROPA": { x: width / 2 + 100 * getReferenceMeasure(), y: height / 2 - 200 * getReferenceMeasure() },
-        "SUD EUROPA": { x: width / 2 - 120 * getReferenceMeasure(), y: height / 2 + 250 * getReferenceMeasure() },
-        "OVEST EUROPA": { x: width / 2 + 340 * getReferenceMeasure(), y: height / 2 },
-        "AUSTRALIA E NUOVA ZELANDA": { x: width / 2 - 150 * getReferenceMeasure(), y: height / 2 + 20 * getReferenceMeasure() }
-    };
+    let maxSceneValuesCache = {};
+    for (let country in countriesData) {
+        maxSceneValuesCache[country] = max(Object.values(countriesData[country]));
+    }
 
-    // Crea i cerchi e calcola le loro posizioni target.
     for (let country in countriesData) {
         let i = 0;
-        let maxValues = max(Object.values(countriesData[country]));
-
+        let maxValues = maxSceneValuesCache[country];
         for (let category in countriesData[country]) {
             const value = countriesData[country][category];
-
-            let circleColor = colorsDict[category];
-
+            let circleColor = categoryColors[category];
             for (let j = 0; j < value; j++) {
                 const startingPosition = getRandomPositionOutsideCanvas();
                 const targetPosition = sceneFiveStartingCirclePositions[category];
 
-                const radius1 = random(25, map(circlesPerCategory[category] / maxCircles, 0, 1, 50, 200)) * getReferenceMeasure();
+                const radius1 = random(25, map(circlesPerCategory[category] / maxCircles, 0, 1, 50, 200)) * referenceMeasure;
                 const angle1 = random(TWO_PI);
                 const x1 = targetPosition.x + cos(angle1) * radius1;
                 const y1 = targetPosition.y + sin(angle1) * radius1;
 
-                const circleRadius = map(value, 0, maxValues, 50, 100) * getReferenceMeasure();
-                const radius2 = (40 * getReferenceMeasure() + circleRadius / 2);
+                const circleRadius = map(value, 0, maxValues, 50, 100) * referenceMeasure;
+                const radius2 = (40 * referenceMeasure + circleRadius / 2);
                 const angle2 = TWO_PI / 6 * i;
                 const angle3 = random(TWO_PI);
                 const x2 = countriesPositions[country].x + cos(angle2) * radius2 + cos(angle3) * random(0, circleRadius / 2);
@@ -593,211 +486,226 @@ function sceneFiveSetup() {
         }
     }
 }
-
 function sceneFive() {
-    // Imposta lo sfondo della scena.
     background(backgroundColor);
-
-    // Disegna il titolo "Flowers that shouldn’t bloom".
-    fill(255, fadeAmount); // Colore bianco con gestione dell'opacità (fade)
-    textFont(bodoniBold);
-    textSize(38 * getReferenceMeasure());
+    fill(255, fadeAmount);
+    textFont(timesNewRomanBold);
+    textSize(38 * referenceMeasure);
     textAlign(LEFT);
-    text('Flowers that shouldn’t bloom', 100 * getReferenceMeasure(), 100 * getReferenceMeasure());
-
-    // Disegna i cerchi grandi che rappresentano le categorie e le relative etichette.
+    text('Flowers that shouldn’t bloom', 100 * referenceMeasure, 100 * referenceMeasure);
+  
+    noStroke();
     for (let key in sceneFiveStartingCirclePositions) {
-        fill(rgbaFromHexAndAlpha(colorsDict[key], fadeAmount)); // Colore della categoria con fade
-
-        // Se lo scroll è all'inizio della scena (primi 20%), i cerchi sono completamente opachi.
-        if (scrollAmount >= startSceneScrollAmount && scrollAmount < startSceneScrollAmount + 0.2 * scenesScrollAmount[currentScene]) {
-            fill(rgbaFromHexAndAlpha(colorsDict[key])); // Rimuove il fade
-        }
-
-        circle(sceneFiveStartingCirclePositions[key].x, sceneFiveStartingCirclePositions[key].y, 50 * getReferenceMeasure());
-
-        // Disegna l'etichetta testuale sotto ogni cerchio grande.
+        let cCol = categoryColors[key];
+        fill(red(cCol), green(cCol), blue(cCol), fadeAmount);
+        circle(sceneFiveStartingCirclePositions[key].x, sceneFiveStartingCirclePositions[key].y, 50 * referenceMeasure);
+        
         fill(255, fadeAmount);
-        textSize(16 * getReferenceMeasure());
+        textFont(montserratRegular);
+        textSize(16 * referenceMeasure);
         textAlign(CENTER);
-        textFont(bodoniRegular);
-        text(mapColorKeyToText(key), sceneFiveStartingCirclePositions[key].x, sceneFiveStartingCirclePositions[key].y + sceneFiveStartingCirclePositions[key].dy);
+        text(categoryTextMap[key], sceneFiveStartingCirclePositions[key].x, sceneFiveStartingCirclePositions[key].y + sceneFiveStartingCirclePositions[key].dy);
     }
 
-    // Anima i cerchi piccoli dalla posizione iniziale (fuori canvas) alla posizione target (raggruppamento per categoria).
+    // Cerchi in animazione
     for (let i = 0; i < circles.length; i++) {
         const circle = circles[i];
-
-        // Calcola il valore di interpolazione `t` in base allo scroll.
-        // L'animazione dura per il 50% dello scroll della scena.
         let t = constrain((scrollAmount - startSceneScrollAmount) / (0.5 * scenesScrollAmount[currentScene]), 0, 1);
-
-        // Esegue l'interpolazione lineare per calcolare la posizione corrente del cerchio.
         let x = lerp(circle.x, circle.targetX, t);
         let y = lerp(circle.y, circle.targetY, t);
 
-        fill(rgbaFromHexAndAlpha(circle.color, fadeAmount)); // Colore del cerchio con fade
-
-        // Se lo scroll si trova nell'ultima parte della scena (ultimi 20%), i cerchi sono completamente opachi.
-        if (scrollAmount <= startSceneScrollAmount + scenesScrollAmount[currentScene] && scrollAmount > startSceneScrollAmount + 0.8 * scenesScrollAmount[currentScene]) {
-            fill(rgbaFromHexAndAlpha(circle.color)); // Rimuove il fade
-        }
-
+        fill(red(circle.color), green(circle.color), blue(circle.color), fadeAmount);
         noStroke();
-        ellipse(x, y, 5 * getReferenceMeasure(), 5 * getReferenceMeasure()); // Disegna il cerchio piccolo
+        ellipse(x, y, 2 * referenceMeasure, 2 * referenceMeasure);
     }
-
-    // Disegna il triangolo in basso al centro (indicatore di scroll).
-    fill(255);
-    noStroke();
-    triangle(width / 2 - 10 * getReferenceMeasure(), height - 50 * getReferenceMeasure(), width / 2 + 10 * getReferenceMeasure(), height - 50 * getReferenceMeasure(), width / 2, height - 30 * getReferenceMeasure());
 }
 
-// Dichiarazioni delle variabili globali relative ai dati e alle posizioni dei paesi.
-let countriesData; // Dati relativi ai paesi (numero di femminicidi per categoria).
-let countriesPositions; // Posizioni dei paesi sulla mappa.
-let countriesCircles; // Cerchi associati ai paesi (potrebbe non essere utilizzato direttamente in questa funzione).
-
-// Funzione di setup per la sesta scena. Attualmente vuota, non esegue operazioni di setup specifiche.
 function sceneSixSetup() {
+    fadeAmount = 0;
 }
-
-// Funzione per disegnare la sesta scena.
 function sceneSix() {
-    // Imposta il colore di sfondo.
     background(backgroundColor);
+    fill(255, fadeAmount);
+    textFont(timesNewRomanBold);
+    textSize(38 * referenceMeasure);
+    textAlign(LEFT); // centrato orizzontalmente
+    text('The Global Distribution of Feminicides', 100 * referenceMeasure, 100 * referenceMeasure);
 
-    // Disegna il titolo "The Global Distribution of Feminicides" (La Distribuzione Globale dei Femminicidi).
-    fill(255, fadeAmount); // Colore bianco con opacità gestita da fadeAmount per l'effetto di dissolvenza.
-    textFont(bodoniBold); // Usa il font Bodoni Bold.
-    textSize(38 * getReferenceMeasure()); // Dimensione del testo scalata in base alla misura di riferimento per la responsività.
-    textAlign(LEFT); // Allinea il testo a sinistra.
-    text('The Global Distribution of Feminicides', 100 * getReferenceMeasure(), 100 * getReferenceMeasure()); // Disegna il testo con un margine di 100px scalato.
-
-    // Disegna la legenda dei colori.
-    let i = 0; // Indice per posizionare verticalmente gli elementi della legenda.
+    let i = 0;
     for (let key in colorsDict) {
-        fill(rgbaFromHexAndAlpha(colorsDict[key], fadeAmount)); // Colore del cerchio preso da colorsDict e applicato il fade.
-        circle(120 * getReferenceMeasure(), (200 + i * 30) * getReferenceMeasure(), 20 * getReferenceMeasure()); // Disegna il cerchio della legenda.
-        fill(255, fadeAmount); // Colore bianco con fade per il testo della legenda.
-        textSize(16 * getReferenceMeasure()); // Dimensione del testo scalata.
-        text(mapColorKeyToText(key), 150 * getReferenceMeasure(), (200 + i * 30) * getReferenceMeasure()); // Disegna il testo della legenda a destra del cerchio.
-        i++; // Incrementa l'indice per la prossima voce della legenda.
+        fill(red(colorsDict[key]), green(colorsDict[key]), blue(colorsDict[key]), fadeAmount);
+        circle(120 * referenceMeasure, (200 + i * 30) * referenceMeasure, 20 * referenceMeasure);
+        fill(255, fadeAmount);
+        textFont(montserratRegular);
+        textSize(16 * referenceMeasure);
+        text(categoryTextMap[key], 150 * referenceMeasure, (200 + i * 30) * referenceMeasure);
+        i++;
     }
 
-    // Anima i cerchi piccoli dalla posizione target della quinta scena (raggruppamento per categoria) alla posizione target della sesta scena (posizione sulla mappa).
+    noStroke();
     for (let i = 0; i < circles.length; i++) {
         const circle = circles[i];
-
-        // Calcola il valore di interpolazione `t` in base allo scroll.
-        // L'animazione dura per il 50% dello scroll della scena.
-        let t = constrain((scrollAmount - startSceneScrollAmount) / (0.5 * scenesScrollAmount[currentScene]), 0, 1); // t varia tra 0 e 1.
-
-        // Esegue l'interpolazione lineare (lerp) per calcolare la posizione corrente del cerchio.
-        // In questa scena, l'interpolazione avviene tra targetX (posizione raggruppata per categoria) e targetX2 (posizione sulla mappa).
-        let x = lerp(circle.targetX, circle.targetX2, t); // Interpola la coordinata x.
-        let y = lerp(circle.targetY, circle.targetY2, t); // Interpola la coordinata y.
-
-        fill(rgbaFromHexAndAlpha(circle.color)); // Applica il colore del cerchio (senza fade in questa scena).
-        noStroke(); // Nessun contorno.
-        ellipse(x, y, 5 * getReferenceMeasure(), 5 * getReferenceMeasure()); // Disegna il cerchio piccolo, scalato per la responsività.
+        let t = constrain((scrollAmount - startSceneScrollAmount) / (0.5 * scenesScrollAmount[currentScene]), 0, 1);
+        let x = lerp(circle.targetX, circle.targetX2, t);
+        let y = lerp(circle.targetY, circle.targetY2, t);
+        fill(red(circle.color), green(circle.color), blue(circle.color));
+        ellipse(x, y, 2 * referenceMeasure, 2 * referenceMeasure);
     }
 
-    // Disegna i cerchi e le etichette per i paesi sulla mappa.
     for (let country in countriesData) {
-        const position = countriesPositions[country]; // Ottiene la posizione del paese dal dizionario.
-        fill(255, fadeAmount); // Bianco con fade per i cerchi dei paesi.
-        ellipse(position.x, position.y, 80 * getReferenceMeasure(), 80 * getReferenceMeasure()); // Disegna il cerchio del paese.
-
-        fill(0, fadeAmount); // Nero con fade per il testo del nome del paese.
-        textSize(16 * getReferenceMeasure()); // Dimensione del testo scalata.
-        textAlign(CENTER); // Allinea il testo al centro.
-        textFont(bodoniRegular); // Usa il font Bodoni Regular.
-        text(country, position.x - 40 * getReferenceMeasure(), position.y, 80 * getReferenceMeasure()); // Disegna il nome del paese all'interno del cerchio.
+        const position = countriesPositions[country];
+        fill(255, fadeAmount);
+        ellipse(position.x, position.y, 80 * referenceMeasure, 80 * referenceMeasure);
+        fill(0, fadeAmount);
+        textSize(10 * referenceMeasure);
+        textFont(montserratRegular); // anche qui usiamo montserrat se necessario
+        textAlign(CENTER);
+        text(country, position.x - 40 * referenceMeasure, position.y, 80 * referenceMeasure);
     }
 }
 
-// Gestisce l'evento di rotellina del mouse (mouse wheel).
+function mouseClicked(event) {
+    if (isClickOnSceneLegend()) {
+        disableScrollAndChangeScene();
+    }
+}
+
+function isClickOnSceneLegend() {
+    let sceneCircleSize = 20 * referenceMeasure;
+    let sceneCircleSpacing = 30 * referenceMeasure;
+    let sceneCircleX = 50 * referenceMeasure;
+    let sceneCircleY = height / 2 - (maxScenes / 2) * sceneCircleSpacing;
+
+    for (let i = 0; i < maxScenes; i++) {
+        let distance = dist(mouseX, mouseY, sceneCircleX, sceneCircleY);
+        if (distance < sceneCircleSize / 2) {
+            return true;
+        }
+        sceneCircleY += sceneCircleSpacing;
+    }
+    return false;
+}
+
+function disableScrollAndChangeScene() {
+    scrollDisabled = true;
+
+    let sceneCircleSize = 20 * referenceMeasure;
+    let sceneCircleSpacing = 30 * referenceMeasure;
+    let sceneCircleX = 50 * referenceMeasure;
+    let sceneCircleY = height / 2 - (maxScenes / 2) * sceneCircleSpacing;
+
+    for (let i = 0; i < maxScenes; i++) {
+        let distance = dist(mouseX, mouseY, sceneCircleX, sceneCircleY);
+        if (distance < sceneCircleSize / 2) {
+            let scrollToReach = 0;
+            for(let j = 0; j < i; j++) {
+                scrollToReach += scenesScrollAmount[j];
+            }
+            scrollToReach += scenesScrollAmount[i] * 0.5;
+            
+            manipulateScroll(scrollToReach);
+
+            break;
+        }
+        sceneCircleY += sceneCircleSpacing;
+    }
+}
+
+function manipulateScroll(scrollToReach) {
+    let steps = Math.abs(scrollToReach - scrollAmount) / 300;
+    let delta = 300;
+    if (scrollAmount > scrollToReach) {
+        delta = -delta;
+    }
+
+    let speed = 50 * 20 / steps;
+    console.log(speed)
+
+    setScrollRecursive(0, steps, delta, speed);
+}
+
+function setScrollRecursive(i, steps, delta, speed) {
+    setTimeout(() => {
+        i++;
+        scrollAmount += delta;
+        scrollAmount = constrain(scrollAmount, 0, maxScroll-1);
+        if (scrollAmount >= startSceneScrollAmount + scenesScrollAmount[currentScene]) {
+            nextScene();
+        } else if (scrollAmount <= startSceneScrollAmount && currentScene > 0) {
+            prevScene();
+        }
+        if (i < steps) {
+            setScrollRecursive(i, steps, delta, speed);
+        }
+        else {
+            scrollDisabled = false;
+        }
+    }, speed)
+}
+
 function mouseWheel(event) {
-    // Aggiorna la quantità di scroll in base alla rotazione della rotellina (delta).
-    scrollAmount += event.delta;
-  
-    // Limita lo scrollAmount tra 0 e il valore massimo consentito (maxScroll - 1).
-    scrollAmount = constrain(scrollAmount, 0, maxScroll - 1);
-  
-    // Controlla se lo scroll ha raggiunto la fine della scena corrente.
-    if (scrollAmount >= startSceneScrollAmount + scenesScrollAmount[currentScene]) {
-      // Passa alla scena successiva.
-      nextScene();
-    } else if (scrollAmount <= startSceneScrollAmount) {
-      // Passa alla scena precedente.
-      prevScene();
+    if (!scrollDisabled) {
+        scrollAmount += event.delta * 3;
+        scrollAmount = constrain(scrollAmount, 0, maxScroll-1);
+        if (scrollAmount >= startSceneScrollAmount + scenesScrollAmount[currentScene]) {
+            nextScene();
+        } else if (scrollAmount <= startSceneScrollAmount && currentScene > 0) {
+            prevScene();
+        }
     }
-  }
-  
-  // Funzione per passare alla scena successiva.
-  function nextScene() {
-    // Controlla se non si è già nell'ultima scena.
-    if (currentScene < maxScenes) {
-      // Aggiorna la posizione iniziale di scroll per la scena successiva.
+}
+
+function nextScene() {
+    if (currentScene < maxScenes - 1) {
       startSceneScrollAmount = scrollAmount;
-      // Incrementa l'indice della scena corrente.
       currentScene++;
-      // Esegue la funzione di setup per la scena appena selezionata.
-      scenesSetup[currentScene]();
+      scenesSetup[currentScene](); 
+    } else if (currentScene === maxScenes - 1) {
+      scrollAmount = maxScroll - 1;
     }
-  }
-  
-  // Funzione per passare alla scena precedente.
-  function prevScene() {
-    // Controlla se non si è già nella prima scena.
+}
+
+function prevScene() {
     if (currentScene > 0) {
-      // Calcola la nuova posizione iniziale di scroll per la scena precedente.
-      startSceneScrollAmount = startSceneScrollAmount - scenesScrollAmount[currentScene - 1];
-      // Decrementa l'indice della scena corrente.
-      currentScene--;
-      // Esegue la funzione di setup per la scena appena selezionata.
-      scenesSetup[currentScene]();
+        startSceneScrollAmount = startSceneScrollAmount - scenesScrollAmount[currentScene - 1];
+        currentScene--;
+        scenesSetup[currentScene]();
     }
-  }
-  
-  // Gestisce il ridimensionamento della finestra.
-  function windowResized() {
-    // Aggiorna le dimensioni del canvas in base alla finestra.
+}
+
+function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
-    // Calcola una misura di riferimento in base alla larghezza della finestra per la responsività.
-    responsiveReferenceMeasure = width / 1920;
-    // Aggiorna le posizioni iniziali dei cerchi della quinta scena se necessario.
+    updateReferenceMeasure();
     computeSceneFiveStartingPositions();
-    // Controlla la scena corrente e richiama la funzione di setup specifica se serve.
-    if (currentScene === 4) {
-      sceneFiveSetup();
-    } else if (currentScene === 5) {
-      sceneSixSetup();
+    if (currentScene === 4 || currentScene === 5) {
+        sceneFiveSetup();
     }
-  }
-  
-  // Converte un colore esadecimale e un valore di alpha in un colore con trasparenza (RGBA).
-  function rgbaFromHexAndAlpha(c, alpha) {
-    // Converte il colore esadecimale in un oggetto p5.Color.
-    c = color(c);
-    // Estrae i valori RGB dal colore.
-    let r = red(c);
-    let g = green(c);
-    let b = blue(c);
-    // Restituisce un nuovo colore con i valori RGB originali e l'alpha specificata.
-    return color(r, g, b, alpha);
-  }
-  
-  // Calcola le posizioni iniziali dei cerchi per la quinta scena.
-  function computeSceneFiveStartingPositions() {
-    // Crea un dizionario per memorizzare le posizioni e gli spostamenti verticali delle etichette.
+}
+
+function computeSceneFiveStartingPositions() {
     sceneFiveStartingCirclePositions = {
-        "FAMILY MEMBER": { x: width / 2 + 70 * getReferenceMeasure(), y: height / 2 - 230 * getReferenceMeasure(), dy: 0 },
-        "INTIMATE PARTNER": { x: width / 2 - 100 * getReferenceMeasure(), y: height / 2 + 220 * getReferenceMeasure(), dy: 0 },
-        "OTHER PERPETRATOR KNOWN TO THE VICTIM": { x: width / 2 - 600 * getReferenceMeasure(), y: height / 2 + 180 * getReferenceMeasure(), dy: 0 },
-        "PERPETRATOR UNKNOWN TO THE VICTIM": { x: width / 2 + 400 * getReferenceMeasure(), y: height / 2 + 200 * getReferenceMeasure(), dy: 0 },
-        "PERPETRATOR TO VICTIM RELATIONSHIP UNKNOWN": { x: width / 2 - 400 * getReferenceMeasure(), y: height / 2 - 100 * getReferenceMeasure(), dy: 0 },
-        "NON CI SONO DATI SULLA CATEGORIA": { x: width / 2 + 500 * getReferenceMeasure(), y: height / 2 - 200 * getReferenceMeasure(), dy: 0 }
+        "FAMILY MEMBER": {x: width / 2 + 70 * referenceMeasure, y: height / 2 - 230 * referenceMeasure},
+        "INTIMATE PARTNER": {x: width / 2 - 100 * referenceMeasure, y: height / 2 + 220 * referenceMeasure},
+        "OTHER PERPETRATOR KNOWN TO THE VICTIM": {x: width / 2 - 600 * referenceMeasure, y: height / 2 + 180 * referenceMeasure},
+        "PERPETRATOR UNKNOWN TO THE VICTIM": {x: width / 2 + 400 * referenceMeasure, y: height / 2 + 200 * referenceMeasure},
+        "PERPETRATOR TO VICTIM RELATIONSHIP UNKNOWN": {x: width / 2 - 400 * referenceMeasure, y: height / 2 - 100 * referenceMeasure},
+        "NON CI SONO DATI SULLA CATEGORIA": {x: width / 2 + 500 * referenceMeasure, y: height / 2 - 200 * referenceMeasure}
+    };
+
+    countriesPositions = {
+        "NORD AFRICA": {x: width / 2 - 800 * referenceMeasure, y: height / 2 + 300 * referenceMeasure},
+        "AFRICA SUB-SARIANA": {x: width / 2 - 500 * referenceMeasure, y: height / 2 + 340 * referenceMeasure},
+        "LATINA AMERICA E CARAIBI": {x: width / 2 + 750 * referenceMeasure, y: height / 2 - 320 * referenceMeasure},
+        "NORD AMERICA": {x: width / 2 + 600 * referenceMeasure, y: height / 2 + 300 * referenceMeasure},
+        "ASIA CENTRALE": {x: width / 2 + 350 * referenceMeasure, y: height / 2 - 290 * referenceMeasure},
+        "ASIA EST": {x: width / 2 + 50 * referenceMeasure, y: height / 2 + 100 * referenceMeasure},
+        "SUD-EST ASIATICO": {x: width / 2 - 600 * referenceMeasure, y: height / 2 + 50 * referenceMeasure},
+        "ASIA SUD": {x: width / 2 - 400 * referenceMeasure, y: height / 2 - 70 * referenceMeasure},
+        "ASIA OVEST": {x: width / 2 + 150 * referenceMeasure, y: height / 2 + 280 * referenceMeasure},
+        "EST EUROPA (+RUSSIA)": {x: width / 2 + 660 * referenceMeasure, y: height / 2 - 25 * referenceMeasure},
+        "NORD EUROPA": {x: width / 2 + 100 * referenceMeasure, y: height / 2 - 200 * referenceMeasure},
+        "SUD EUROPA": {x: width / 2 - 170 * referenceMeasure, y: height / 2 + 250 * referenceMeasure},
+        "OVEST EUROPA": {x: width / 2 + 340 * referenceMeasure, y: height / 2},
+        "AUSTRALIA E NUOVA ZELANDA": {x: width / 2 - 150 * referenceMeasure, y: height / 2 + 20 * referenceMeasure}
     };
 }
