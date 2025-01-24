@@ -45,7 +45,7 @@ const scenesScrollAmount = {
 
 const colorsDict = {
     "FAMILY MEMBER": "#841242",
-    "INTIMATE PARTNER": "#611915",
+    "INTIMATE PARTNER": "#8D0016",
     "OTHER PERPETRATOR KNOWN TO THE VICTIM": "#A02B25",
     "PERPETRATOR UNKNOWN TO THE VICTIM": "#D45249",
     "PERPETRATOR TO VICTIM RELATIONSHIP UNKNOWN": "#E4908B",
@@ -81,7 +81,8 @@ const scenesSetup = {
 function preload() {
     timesNewRomanBold = loadFont('fonts/times new roman bold.ttf');
     montserratRegular = loadFont('fonts/Montserrat-Regular.ttf'); // Nuovo font
-    dataset = loadTable("assets/Femmincidi2.csv", 'ssv', 'header');
+    // dataset = loadTable("assets/Femminicidi2.csv", 'ssv', 'header');
+    dataset = loadTable("assets/Femminicidi3.csv", 'csv', 'header');
 }
 
 function setup() {
@@ -424,7 +425,7 @@ function sceneFiveSetup() {
     countriesCircles = {};
     for (let r = 0; r < dataset.getRowCount(); r++) {
         const row = dataset.getRow(r);
-        const country = row.get("SUB-REGIONE 2020");
+        const country = row.get("2020_SUBREGION");
         countriesData[country] = {};
         countriesCircles[country] = {};
         for (let i = 1; i < dataset.columns.length; i++) {
@@ -601,7 +602,7 @@ function disableScrollAndChangeScene() {
             for(let j = 0; j < i; j++) {
                 scrollToReach += scenesScrollAmount[j];
             }
-            scrollToReach += scenesScrollAmount[i] * 0.5;
+            scrollToReach += scenesScrollAmount[i] * 0.6;
             
             manipulateScroll(scrollToReach);
 
@@ -657,7 +658,15 @@ function mouseWheel(event) {
 
 function nextScene() {
     if (currentScene < maxScenes - 1) {
-      startSceneScrollAmount = scrollAmount;
+      console.log("Changing scene from " + currentScene + " to " + (currentScene + 1));
+      console.log("Scroll amount: " + scrollAmount);
+      console.log("Start scene scroll amount: " + startSceneScrollAmount);
+
+      startSceneScrollAmount += scenesScrollAmount[currentScene];
+    //   startSceneScrollAmount = scrollAmount;
+      
+      console.log("Start scene scroll amount: " + startSceneScrollAmount);
+
       currentScene++;
       scenesSetup[currentScene](); 
     } else if (currentScene === maxScenes - 1) {
@@ -667,7 +676,14 @@ function nextScene() {
 
 function prevScene() {
     if (currentScene > 0) {
-        startSceneScrollAmount = startSceneScrollAmount - scenesScrollAmount[currentScene - 1];
+        console.log("Changing scene from " + currentScene + " to " + (currentScene - 1));
+        console.log("Scroll amount: " + scrollAmount);
+        console.log("Start scene scroll amount: " + startSceneScrollAmount);
+
+        // startSceneScrollAmount = startSceneScrollAmount - scenesScrollAmount[currentScene - 1];
+        startSceneScrollAmount -= scenesScrollAmount[currentScene - 1];
+
+        console.log("Start scene scroll amount: " + startSceneScrollAmount);
         currentScene--;
         scenesSetup[currentScene]();
     }
@@ -693,19 +709,19 @@ function computeSceneFiveStartingPositions() {
     };
 
     countriesPositions = {
-        "NORD AFRICA": {x: width / 2 - 800 * referenceMeasure, y: height / 2 + 300 * referenceMeasure},
-        "AFRICA SUB-SARIANA": {x: width / 2 - 500 * referenceMeasure, y: height / 2 + 340 * referenceMeasure},
-        "LATINA AMERICA E CARAIBI": {x: width / 2 + 750 * referenceMeasure, y: height / 2 - 320 * referenceMeasure},
-        "NORD AMERICA": {x: width / 2 + 600 * referenceMeasure, y: height / 2 + 300 * referenceMeasure},
-        "ASIA CENTRALE": {x: width / 2 + 350 * referenceMeasure, y: height / 2 - 290 * referenceMeasure},
-        "ASIA EST": {x: width / 2 + 50 * referenceMeasure, y: height / 2 + 100 * referenceMeasure},
-        "SUD-EST ASIATICO": {x: width / 2 - 600 * referenceMeasure, y: height / 2 + 50 * referenceMeasure},
-        "ASIA SUD": {x: width / 2 - 400 * referenceMeasure, y: height / 2 - 70 * referenceMeasure},
-        "ASIA OVEST": {x: width / 2 + 150 * referenceMeasure, y: height / 2 + 280 * referenceMeasure},
-        "EST EUROPA (+RUSSIA)": {x: width / 2 + 660 * referenceMeasure, y: height / 2 - 25 * referenceMeasure},
-        "NORD EUROPA": {x: width / 2 + 100 * referenceMeasure, y: height / 2 - 200 * referenceMeasure},
-        "SUD EUROPA": {x: width / 2 - 170 * referenceMeasure, y: height / 2 + 250 * referenceMeasure},
-        "OVEST EUROPA": {x: width / 2 + 340 * referenceMeasure, y: height / 2},
-        "AUSTRALIA E NUOVA ZELANDA": {x: width / 2 - 150 * referenceMeasure, y: height / 2 + 20 * referenceMeasure}
+        "NORTHERN AFRICA": {x: width / 2 - 800 * referenceMeasure, y: height / 2 + 300 * referenceMeasure},
+        "SUB-SAHARIAN AFRICA": {x: width / 2 - 500 * referenceMeasure, y: height / 2 + 340 * referenceMeasure},
+        "LATIN AMERICA AND CARRIBEAN": {x: width / 2 + 750 * referenceMeasure, y: height / 2 - 320 * referenceMeasure},
+        "NORTHERN AMERICA": {x: width / 2 + 600 * referenceMeasure, y: height / 2 + 300 * referenceMeasure},
+        "CENTRAL ASIA": {x: width / 2 + 350 * referenceMeasure, y: height / 2 - 290 * referenceMeasure},
+        "EASTERN ASIA": {x: width / 2 + 50 * referenceMeasure, y: height / 2 + 100 * referenceMeasure},
+        "SOUTH-EASTERN ASIA": {x: width / 2 - 600 * referenceMeasure, y: height / 2 + 50 * referenceMeasure},
+        "SOUTHERN ASIA": {x: width / 2 - 400 * referenceMeasure, y: height / 2 - 70 * referenceMeasure},
+        "WESTERN ASIA": {x: width / 2 + 150 * referenceMeasure, y: height / 2 + 280 * referenceMeasure},
+        "EASTERN EUROPE": {x: width / 2 + 660 * referenceMeasure, y: height / 2 - 25 * referenceMeasure},
+        "NORTHERN EUROPE": {x: width / 2 + 100 * referenceMeasure, y: height / 2 - 200 * referenceMeasure},
+        "SOUTHERN EUROPE": {x: width / 2 - 170 * referenceMeasure, y: height / 2 + 250 * referenceMeasure},
+        "WESTERN EUROPE": {x: width / 2 + 340 * referenceMeasure, y: height / 2},
+        "AUSTRALIA AND NEW ZELAND": {x: width / 2 - 150 * referenceMeasure, y: height / 2 + 20 * referenceMeasure}
     };
 }
