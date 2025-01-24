@@ -79,7 +79,7 @@ const scenesSetup = {
 };
 
 function preload() {
-    timesNewRomanBold = loadFont('fonts/times new roman bold.ttf');
+    timesNewRomanBold = loadFont('fonts/times_new_roman_bold.ttf');
     montserratRegular = loadFont('fonts/Montserrat-Regular.ttf'); // Nuovo font
     // dataset = loadTable("assets/Femminicidi2.csv", 'ssv', 'header');
     dataset = loadTable("assets/Femminicidi3.csv", 'csv', 'header');
