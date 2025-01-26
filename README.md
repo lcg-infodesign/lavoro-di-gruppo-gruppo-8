@@ -1,6 +1,7 @@
-# Sistema di Gestione delle Scene con p5.js
+# README | Flowers that shouldn't bloom
 
-Questo progetto utilizza **p5.js** per creare un sistema interattivo basato su scene, che include transizioni fluide, animazioni dinamiche e un layout completamente responsivo.
+## L'obiettivo di questa visualizzazione
+...
 
 ## Funzionalità principali
 
