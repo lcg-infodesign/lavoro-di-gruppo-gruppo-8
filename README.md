@@ -12,7 +12,7 @@ Lo scopo della visualizzazione è quello di illustrare i dati relativi al numero
 - La funzione `setup()` generale gestisce la configurazione globale non legata a una scena specifica.
 - La funzione `draw()` generale richiama dinamicamente la funzione della scena corrente (`currentScene`).
 - **Cambio scena**:
-  - Il cambio scena è gestito tramite la rotella del mouse (funzione `mouseWheel()`) oppure tramute click su una determinata sezione della navigation bar.
+  - Il cambio scena è gestito tramite la rotella del mouse (funzione `mouseWheel()`) oppure tramite click su una determinata sezione della navigation bar.
   - La variabile `scrollAmount` tiene traccia dello scorrimento.
   - Per ogni scena vengono definiti i limiti superiori e inferiori di `scrollAmount` che determinano il passaggio alla scena successiva o precedente.
 
