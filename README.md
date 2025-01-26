@@ -1,7 +1,7 @@
 # README | Flowers that shouldn't bloom
 
 ## L'obiettivo di questa visualizzazione
-Lo scopo della visualizzazione è quello di illustrare i dati relativi al numero e alla natura dei femminicidi a livello mondiale, facendo leva, in particolare , sulla quantità dei dati mancanti, al fine di far riflettere su quanta importanza viene ancora oggi attribuita a questo fenomeno.
+Lo scopo della visualizzazione è quello di illustrare i dati relativi al numero e alla natura dei femminicidi a livello mondiale nel 2020, facendo leva, in particolare , sulla quantità dei dati mancanti, al fine di far riflettere su quanta importanza viene ancora oggi attribuita a questo fenomeno.
 
 ## Funzionalità principali
 
