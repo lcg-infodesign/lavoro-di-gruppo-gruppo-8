@@ -1,7 +1,7 @@
 # README | Flowers that shouldn't bloom
 
 ## L'obiettivo di questa visualizzazione
-Lo scopo della visualizzazione è quello di illustrare i dati relativi al numero e alla natura dei femminicidi a livello mondiale nel 2020, facendo leva, in particolare , sulla quantità dei dati mancanti, al fine di far riflettere su quanta importanza viene ancora oggi attribuita a questo fenomeno. Ogni vittima è rappresentata da un puntino che si va collocare prima nella posizione che comunica la relazione con il suo carnefice e dopo nella sub-regioone geografica corretta.
+Lo scopo della visualizzazione è quello di illustrare i dati relativi al numero e alla natura dei femminicidi a livello mondiale nel 2020, facendo leva, in particolare , sulla quantità dei dati mancanti, al fine di far riflettere su quanta importanza viene ancora oggi attribuita a questo fenomeno. Il prototipo si sviluppa attorno alla metafora del fiore, il quale più è rigoglioso e più ci fa capire quanto grave sia il problema. Ogni vittima, invece, è rappresentata da un puntino che si va collocare prima nella posizione che comunica la relazione con il suo carnefice e dopo nella sub-regioone geografica corretta. Da queste riflessioni deriva la scelta del titolo “Flowers that shouldn’t bloom”.
 
 ## Funzionalità principali
 
