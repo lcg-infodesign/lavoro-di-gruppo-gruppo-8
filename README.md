@@ -16,10 +16,6 @@ Lo scopo della visualizzazione è quello di illustrare i dati relativi al numero
   - La variabile `scrollAmount` tiene traccia dello scorrimento.
   - Per ogni scena vengono definiti i limiti superiori e inferiori di `scrollAmount` che determinano il passaggio alla scena successiva o precedente.
 
-### 2. **Dissolvenza tra Scene**
-- La variabile globale `fadeAmount` regola la trasparenza degli elementi.
-- La funzione `simulateFading` calcola dinamicamente `fadeAmount` nei primi e ultimi 20% di `scrollAmount` all'interno della scena.
-
 ## Struttura del Codice
 
 ### Funzioni principali
