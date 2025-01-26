@@ -3,7 +3,7 @@ p5.disableFriendlyErrors = true;
 let currentScene = 0; 
 let scrollAmount = 0; 
 let startSceneScrollAmount = 0; 
-const maxScroll = 36000;
+const maxScroll = 42000;
 let scrollDisabled = false;
 
 let startingWidth; 
@@ -12,7 +12,7 @@ let referenceMeasure;
 const minReferenceMeasure = 0.5; 
 
 const backgroundColor = "#210908";
-const maxScenes = 6; 
+const maxScenes = 7; 
 
 let timesNewRomanBold, montserratRegular;
 
@@ -41,6 +41,7 @@ const scenesScrollAmount = {
     3: 6000,
     4: 6000,
     5: 6000,
+    6: 6000
 };
 
 const colorsDict = {
@@ -67,7 +68,8 @@ const scenes = {
     2: sceneThree,
     3: sceneFour,
     4: sceneFive,
-    5: sceneSix
+    5: sceneSix,
+    6: sceneSeven,
 };
 const scenesSetup = {
     0: sceneOneSetup,
@@ -75,7 +77,8 @@ const scenesSetup = {
     2: sceneThreeSetup,
     3: sceneFourSetup,
     4: sceneFiveSetup,
-    5: sceneSixSetup
+    5: sceneSixSetup,
+    6: sceneSevenSetup,
 };
 
 function preload() {
@@ -530,7 +533,7 @@ function sceneSix() {
     textFont(timesNewRomanBold);
     textSize(38 * referenceMeasure);
     textAlign(LEFT); // centrato orizzontalmente
-    text('The Global Distribution of Feminicides', 100 * referenceMeasure, 100 * referenceMeasure);
+    text('The Global Distribution of Femicides', 100 * referenceMeasure, 100 * referenceMeasure);
 
     let i = 0;
     for (let key in colorsDict) {
@@ -558,7 +561,7 @@ function sceneSix() {
         fill(255, fadeAmount);
         ellipse(position.x, position.y, 80 * referenceMeasure, 80 * referenceMeasure);
         fill(0, fadeAmount);
-        textSize(10 * referenceMeasure);
+        textSize(8 * referenceMeasure);
         textFont(montserratRegular); // anche qui usiamo montserrat se necessario
         textAlign(CENTER);
         text(country, position.x - 40 * referenceMeasure, position.y, 80 * referenceMeasure);
@@ -725,3 +728,54 @@ function computeSceneFiveStartingPositions() {
         "AUSTRALIA AND NEW ZELAND": {x: width / 2 - 150 * referenceMeasure, y: height / 2 + 20 * referenceMeasure}
     };
 }
+
+// Scena 7 crediti
+scenesScrollAmount[6] = 6000;
+scenes[6] = sceneSeven;
+scenesSetup[6] = sceneSevenSetup;
+function sceneSevenSetup() {
+  fadeAmount = 0;
+}
+function sceneSeven() {
+    background(backgroundColor);
+    fill(255, fadeAmount);
+
+// Titolo
+fill(255, fadeAmount);
+textFont(timesNewRomanBold);
+textAlign(CENTER, CENTER);
+textSize(48 * referenceMeasure);
+text('Credits', width / 2, height / 1.7 - 500 * referenceMeasure);
+
+// Sottotitolo
+fill(255, fadeAmount);
+textFont(montserratRegular);
+textSize(24 * referenceMeasure);
+textAlign(CENTER, CENTER);
+let creditsText = [ //testo
+  "This project was created by students from the Politecnico di Milano,",
+  "within the Information Design course, Bachelor's Degree in Communication Design",
+  "",
+  "Lorenzo Coluccia",
+  "Ermanio Malko",
+  "Gaia Manera",
+  "Cristina Pedrazzini",
+  "Marta Stella Ratti",
+  "Susanna Scopelliti",
+  "",
+  "The data used in this project sourced from the United Nations Office on Drugs and Crime (UNODC):",
+  "dataunodc.un.org/dp-femicide",
+  "",
+  "National data are submitted by Member States to UNODC through the United Nations Survey of Crime Trends and",
+  "Operations of Criminal Justice Systems (UN-CTS) or via other means. Regional and global estimates are",
+  "produced by UNODC based on national data."
+];
+
+let lineHeight = 30 * referenceMeasure; 
+let blockHeight = creditsText.length * lineHeight; 
+let startY = height / 2 - blockHeight / 2; 
+creditsText.forEach((line, index) => {
+  text(line, width / 2, startY + index * lineHeight);
+});
+
+  }
