@@ -78,6 +78,7 @@ Ogni scena include:
 ## Fonti
 
 - **United Nations Office on Drugs and Crime (UNODC)**: [Data UNODC - Femicide](https://dataunodc.un.org/dp-femicide)
+Il dataset dell'UNODC fornisce informazioni dettagliate sulla violenza di genere, con un focus particolare sui femminicidi. Questo tipo di dato è essenziale per comprendere le tendenze globali, le differenze tra regioni e l'efficacia delle politiche di prevenzione e risposta.
 
 ## Team e Ruoli
 
