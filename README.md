@@ -78,7 +78,9 @@ Ogni scena include:
 ## Fonti
 
 - **United Nations Office on Drugs and Crime (UNODC)**: [Data UNODC - Femicide](https://dataunodc.un.org/dp-femicide)
-Il dataset dell'UNODC fornisce informazioni dettagliate sulla violenza di genere, con un focus particolare sui femminicidi. Questo tipo di dato è essenziale per comprendere le tendenze globali, le differenze tra regioni e l'efficacia delle politiche di prevenzione e risposta.
+
+Il dataset dell'UNODC fornisce informazioni dettagliate sugli omicidi intenzionali e, tramite appositi filtri, si giunge al focus sui femminicidi. Questo tipo di dato è essenziale per comprendere le tendenze globali, le differenze tra regioni e l'efficacia delle politiche di prevenzione e risposta. I dati raccolti si riferiscono agli anni che vanno dal 1990 al 2023 e sono specifici per ogni stato. 
+Abbiamo, quindi, filtrato il dataset concentrandoci solo sui dati del 2020 e analizzando le sub-regioni del mondo invece che ogni stato.
 
 ## Team e Ruoli
 
