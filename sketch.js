@@ -206,7 +206,7 @@ function sceneTwo() {
     background(backgroundColor);
     textAlign(CENTER, CENTER);
 
-    // Titolo principale (bodoni)
+    // Titolo principale (times new roman)
     fill(255, fadeAmount);
     textFont(timesNewRomanBold);
     textSize(64 * referenceMeasure);
@@ -227,11 +227,6 @@ function sceneThreeSetup() {
         columns.forEach(columnName => {
             const numCircles = int(row.get(columnName));
             const circleColor = categoryColors[columnName];
-            // let scaleFactor = 1;
-            // if (columnName === "NON CI SONO DATI SULLA CATEGORIA") {
-            //     scaleFactor = 4;
-            // }
-            // let count = numCircles / scaleFactor;
             let count = numCircles;
             for (let i = 0; i < count; i++) {
                 const x = random(startingWidth);
@@ -349,9 +344,7 @@ function sceneFour() {
         i++;
     }
 
-    stroke(255, fadeAmount);
-    strokeWeight(1.5);
-    line(width / 2 - 600 * referenceMeasure, height / 2, width / 2 + 600 * referenceMeasure, height / 2);
+
 
     noStroke();
     fill(255, fadeAmount);
