@@ -44,9 +44,9 @@ Abbiamo, quindi, filtrato il dataset concentrandoci solo sui dati del 2020 (part
 
 ## Team e Ruoli
 
-- **Lorenzo Coluccia**: codice  
-- **Ermanio Malko**: codice  
-- **Gaia Manera**: codice  
-- **Cristina Pedrazzini**: mockup e grafiche  
-- **Marta Stella Ratti**: mockup e grafiche  
-- **Susanna Scopelliti**: dataset e testi  
+- **Lorenzo Coluccia**: animazioni  
+- **Ermanio Malko**: ottimizzazione del codice  
+- **Gaia Manera**: integrare le animazioni e gli elementi alla struttura del codice, fix e debug  
+- **Cristina Pedrazzini**: mockup definitivo e stesura dei testi   
+- **Marta Stella Ratti**: inspo, moodboard e prime visualizzazioni delle grafiche 
+- **Susanna Scopelliti**: modifica del dataset e stesura dei testi  
