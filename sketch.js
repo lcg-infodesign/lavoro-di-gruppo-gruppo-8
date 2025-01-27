@@ -10,6 +10,7 @@ let startingWidth;
 let startingHeight;
 let cappedReferenceMeasure;
 let realReferenceMeasure;
+let verticalReferenceMeasure;
 const minReferenceMeasure = 0.5;
 
 const backgroundColor = "#210908";
@@ -114,6 +115,7 @@ function draw() {
 function updateReferenceMeasure() {
     cappedReferenceMeasure = max(width / 1920, minReferenceMeasure);
     realReferenceMeasure = width / 1920;
+    verticalReferenceMeasure = height / 1080;
 }
 
 function simulateFading() {
@@ -698,29 +700,29 @@ function windowResized() {
 
 function computeSceneFiveStartingPositions() {
     sceneFiveStartingCirclePositions = {
-        "FAMILY MEMBER": { x: width / 2 + 70 * realReferenceMeasure, y: height / 2 - 230 * realReferenceMeasure },
-        "INTIMATE PARTNER": { x: width / 2 - 100 * realReferenceMeasure, y: height / 2 + 220 * realReferenceMeasure },
-        "OTHER PERPETRATOR KNOWN TO THE VICTIM": { x: width / 2 - 600 * realReferenceMeasure, y: height / 2 + 180 * realReferenceMeasure },
-        "PERPETRATOR UNKNOWN TO THE VICTIM": { x: width / 2 + 400 * realReferenceMeasure, y: height / 2 + 200 * realReferenceMeasure },
-        "PERPETRATOR TO VICTIM RELATIONSHIP UNKNOWN": { x: width / 2 - 400 * realReferenceMeasure, y: height / 2 - 100 * realReferenceMeasure },
-        "NON CI SONO DATI SULLA CATEGORIA": { x: width / 2 + 500 * realReferenceMeasure, y: height / 2 - 200 * realReferenceMeasure }
+        "FAMILY MEMBER": { x: width / 2 + 70 * realReferenceMeasure, y: height / 2 - 230 * verticalReferenceMeasure },
+        "INTIMATE PARTNER": { x: width / 2 - 100 * realReferenceMeasure, y: height / 2 + 220 * verticalReferenceMeasure },
+        "OTHER PERPETRATOR KNOWN TO THE VICTIM": { x: width / 2 - 600 * realReferenceMeasure, y: height / 2 + 180 * verticalReferenceMeasure },
+        "PERPETRATOR UNKNOWN TO THE VICTIM": { x: width / 2 + 400 * realReferenceMeasure, y: height / 2 + 200 * verticalReferenceMeasure },
+        "PERPETRATOR TO VICTIM RELATIONSHIP UNKNOWN": { x: width / 2 - 400 * realReferenceMeasure, y: height / 2 - 100 * verticalReferenceMeasure },
+        "NON CI SONO DATI SULLA CATEGORIA": { x: width / 2 + 500 * realReferenceMeasure, y: height / 2 - 200 * verticalReferenceMeasure }
     };
 
     countriesPositions = {
-        "NORTHERN AFRICA": { x: width / 2 - 800 * realReferenceMeasure, y: height / 2 + 300 * realReferenceMeasure },
-        "SUB-SAHARIAN AFRICA": { x: width / 2 - 500 * realReferenceMeasure, y: height / 2 + 340 * realReferenceMeasure },
-        "LATIN AMERICA AND CARRIBEAN": { x: width / 2 + 750 * realReferenceMeasure, y: height / 2 - 320 * realReferenceMeasure },
-        "NORTHERN AMERICA": { x: width / 2 + 600 * realReferenceMeasure, y: height / 2 + 300 * realReferenceMeasure },
-        "CENTRAL ASIA": { x: width / 2 + 350 * realReferenceMeasure, y: height / 2 - 290 * realReferenceMeasure },
-        "EASTERN ASIA": { x: width / 2 + 50 * realReferenceMeasure, y: height / 2 + 100 * realReferenceMeasure },
-        "SOUTH-EASTERN ASIA": { x: width / 2 - 600 * realReferenceMeasure, y: height / 2 + 50 * realReferenceMeasure },
-        "SOUTHERN ASIA": { x: width / 2 - 400 * realReferenceMeasure, y: height / 2 - 70 * realReferenceMeasure },
-        "WESTERN ASIA": { x: width / 2 + 150 * realReferenceMeasure, y: height / 2 + 280 * realReferenceMeasure },
-        "EASTERN EUROPE": { x: width / 2 + 660 * realReferenceMeasure, y: height / 2 - 25 * realReferenceMeasure },
-        "NORTHERN EUROPE": { x: width / 2 + 100 * realReferenceMeasure, y: height / 2 - 200 * realReferenceMeasure },
-        "SOUTHERN EUROPE": { x: width / 2 - 170 * realReferenceMeasure, y: height / 2 + 250 * realReferenceMeasure },
+        "NORTHERN AFRICA": { x: width / 2 - 800 * realReferenceMeasure, y: height / 2 + 300 * verticalReferenceMeasure },
+        "SUB-SAHARIAN AFRICA": { x: width / 2 - 500 * realReferenceMeasure, y: height / 2 + 340 * verticalReferenceMeasure },
+        "LATIN AMERICA AND CARRIBEAN": { x: width / 2 + 750 * realReferenceMeasure, y: height / 2 - 320 * verticalReferenceMeasure },
+        "NORTHERN AMERICA": { x: width / 2 + 600 * realReferenceMeasure, y: height / 2 + 300 * verticalReferenceMeasure },
+        "CENTRAL ASIA": { x: width / 2 + 350 * realReferenceMeasure, y: height / 2 - 290 * verticalReferenceMeasure },
+        "EASTERN ASIA": { x: width / 2 + 50 * realReferenceMeasure, y: height / 2 + 100 * verticalReferenceMeasure },
+        "SOUTH-EASTERN ASIA": { x: width / 2 - 600 * realReferenceMeasure, y: height / 2 + 50 * verticalReferenceMeasure },
+        "SOUTHERN ASIA": { x: width / 2 - 400 * realReferenceMeasure, y: height / 2 - 70 * verticalReferenceMeasure },
+        "WESTERN ASIA": { x: width / 2 + 150 * realReferenceMeasure, y: height / 2 + 280 * verticalReferenceMeasure },
+        "EASTERN EUROPE": { x: width / 2 + 660 * realReferenceMeasure, y: height / 2 - 25 * verticalReferenceMeasure },
+        "NORTHERN EUROPE": { x: width / 2 + 100 * realReferenceMeasure, y: height / 2 - 200 * verticalReferenceMeasure },
+        "SOUTHERN EUROPE": { x: width / 2 - 170 * realReferenceMeasure, y: height / 2 + 250 * verticalReferenceMeasure },
         "WESTERN EUROPE": { x: width / 2 + 340 * realReferenceMeasure, y: height / 2 },
-        "AUSTRALIA AND NEW ZELAND": { x: width / 2 - 150 * realReferenceMeasure, y: height / 2 + 20 * realReferenceMeasure }
+        "AUSTRALIA AND NEW ZELAND": { x: width / 2 - 150 * realReferenceMeasure, y: height / 2 + 20 * verticalReferenceMeasure }
     };
 }
 
